@@ -4,9 +4,6 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { Lock, Moon, Sun } from 'lucide-react';
 import { initializeTheme, toggleDarkMode } from '../../lib/theme';
-import { checkPassword } from '../../lib/auth';
-
-const ADMIN = process.env.NEXT_PUBLIC_ADMIN;
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -31,18 +28,29 @@ export default function AdminLogin() {
     setLoading(true);
     setError('');
 
-    // Compare input value with environment variable
-    if (!checkPassword(formData.email)) {
-      setError('Invalid admin value');
-      setLoading(false);
-      return;
-    }
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // Here we send the admin value as password.
+        body: JSON.stringify({ password: formData.email }),
+      });
 
-    // Generate a simple token for authentication
-    const token = btoa(formData.email);
-    localStorage.setItem('adminToken', token);
-    localStorage.setItem('adminUser', JSON.stringify({ email: formData.email }));
-    router.push('/admin/dashboard');
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || 'Invalid admin value');
+        setLoading(false);
+        return;
+      }
+
+      const token = btoa(formData.email);
+      localStorage.setItem('adminToken', token);
+      localStorage.setItem('adminUser', JSON.stringify({ email: formData.email }));
+      router.push('/admin/dashboard');
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+    }
 
     setLoading(false);
   };
@@ -67,13 +75,19 @@ export default function AdminLogin() {
               </div>
             </div>
             <h1 className="text-2xl font-bold">Admin Portal</h1>
-            <p className="text-gray-500 mt-2">Enter your credentials to access the dashboard</p>
+            <p className="text-gray-500 mt-2">
+              Enter your credentials to access the dashboard
+            </p>
           </div>
 
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-lg flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
               {error}
             </div>
@@ -94,11 +108,7 @@ export default function AdminLogin() {
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="login-button"
-            >
+            <button type="submit" disabled={loading} className="login-button">
               {loading ? 'Signing in...' : 'Sign In to Dashboard'}
             </button>
           </form>
