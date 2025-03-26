@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { logout } from '../lib/auth';
+import { logout, isAuthenticated } from '../lib/auth';
 import { 
   Home, 
   Calendar, 
-  Settings, 
   LogOut, 
   Menu, 
-  X,
-  Moon,
-  Sun
+  X
 } from 'lucide-react';
 import { initializeTheme, toggleDarkMode } from '../lib/theme';
 
@@ -27,6 +24,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     // Initialize theme from local storage
     const isDark = initializeTheme();
     setDarkMode(isDark);
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/admin/login'); // Redirect to login if not authenticated
+    }
   }, []);
 
   const handleLogout = async () => {

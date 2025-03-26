@@ -4,21 +4,11 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { Lock, Moon, Sun } from 'lucide-react';
 import { initializeTheme, toggleDarkMode } from '../../lib/theme';
-import { signInWithPopup, GoogleAuthProvider, getAuth } from 'firebase/auth';
-import { initializeApp } from 'firebase/app';
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
-const GOOGLE_AUTHORIZED_EMAIL = process.env.NEXT_PUBLIC_GOOGLE_AUTHORIZED_EMAIL;
+const ADMIN = process.env.NEXT_PUBLIC_ADMIN;
 
 export default function AdminLogin() {
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -30,27 +20,28 @@ export default function AdminLogin() {
     setDarkMode(isDark);
   }, []);
 
-  const handleGoogleLogin = async () => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setError('');
 
-    try {
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const provider = new GoogleAuthProvider();
-
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      if (user.email === GOOGLE_AUTHORIZED_EMAIL) {
-        localStorage.setItem('adminUser', JSON.stringify({ email: user.email }));
-        router.push('/admin/dashboard');
-      } else {
-        setError('Unauthorized email address');
-      }
-    } catch (err) {
-      setError('Failed to sign in with Google');
+    // Compare input value with environment variable
+    if (formData.email !== ADMIN) {
+      setError('Invalid admin value. Please try again.');
+      setLoading(false);
+      return;
     }
+
+    // Generate a simple token for authentication
+    const token = btoa(formData.email);
+    localStorage.setItem('adminToken', token);
+    localStorage.setItem('adminUser', JSON.stringify({ email: formData.email }));
+    router.push('/admin/dashboard');
 
     setLoading(false);
   };
@@ -75,7 +66,7 @@ export default function AdminLogin() {
               </div>
             </div>
             <h1 className="text-2xl font-bold">Admin Portal</h1>
-            <p className="text-gray-500 mt-2">Sign in with your Google account to access the dashboard</p>
+            <p className="text-gray-500 mt-2">Enter your credentials to access the dashboard</p>
           </div>
 
           {error && (
@@ -87,13 +78,29 @@ export default function AdminLogin() {
             </div>
           )}
 
-          <button
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className="login-button"
-          >
-            {loading ? 'Signing in...' : 'Sign In with Google'}
-          </button>
+          <form onSubmit={handleSubmit} className="login-form">
+            <div className="mb-5">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Admin Value
+              </label>
+              <input
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="value"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="login-button"
+            >
+              {loading ? 'Signing in...' : 'Sign In to Dashboard'}
+            </button>
+          </form>
 
           <div className="mt-8 flex justify-between items-center">
             <Link href="/" className="text-blue-600 hover:text-blue-800 text-sm font-medium">

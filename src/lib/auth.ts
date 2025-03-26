@@ -5,8 +5,7 @@ import { useState, useEffect } from 'react';
 const isBrowser = typeof window !== 'undefined';
 
 // Admin credentials from environment variables
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+const ADMIN_EMAIL = process.env.NNEXT_PUBLIC_ADMIN;
 
 // Session storage key
 const AUTH_TOKEN_KEY = 'adminAuthToken';
@@ -16,10 +15,9 @@ export const logout = () => {
   localStorage.removeItem('adminUser');
 };
 
-export const isAuthenticated = () => {
-  if (!isBrowser) return false;
-  
-  return !!localStorage.getItem('adminUser');
+export const isAuthenticated = (): boolean => {
+  const token = localStorage.getItem('adminToken');
+  return !!token;
 };
 
 export const getUser = () => {
@@ -41,21 +39,23 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Only run on client side
     if (!isBrowser) return;
-
+    
     const checkAuth = () => {
       const auth = isAuthenticated();
       setIsLoggedIn(auth);
       setUser(auth ? getUser() : null);
       setLoading(false);
     };
-
+    
     checkAuth();
-
+    
+    // Listen for storage events (for multi-tab logout)
     const handleStorage = () => {
       checkAuth();
     };
-
+    
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
