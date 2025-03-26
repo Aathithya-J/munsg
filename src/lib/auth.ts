@@ -41,23 +41,21 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Only run on client side
     if (!isBrowser) return;
-    
+
     const checkAuth = () => {
       const auth = isAuthenticated();
       setIsLoggedIn(auth);
       setUser(auth ? getUser() : null);
       setLoading(false);
     };
-    
+
     checkAuth();
-    
-    // Listen for storage events (for multi-tab logout)
+
     const handleStorage = () => {
       checkAuth();
     };
-    
+
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
   }, []);

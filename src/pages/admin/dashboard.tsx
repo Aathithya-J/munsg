@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import AdminLayout from '../../components/AdminLayout';
 // Removed AuthGuard import
@@ -34,11 +35,20 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [recentConferences, setRecentConferences] = useState<Conference[]>([]);
   const [upcomingConferences, setUpcomingConferences] = useState<Conference[]>([]);
-  const { user } = useAuth();
+  const router = useRouter();
+  const { isLoggedIn, user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    if (!authLoading && !isLoggedIn) {
+      router.push('/admin/login');
+    }
+  }, [authLoading, isLoggedIn, router]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchStats();
+    }
+  }, [isLoggedIn]);
 
   const fetchStats = async () => {
     try {
@@ -97,8 +107,18 @@ export default function AdminDashboard() {
     }
   };
 
+  if (authLoading || !isLoggedIn) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="loader">
+          <div className="spinner"></div>
+          <p className="mt-4 text-gray-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    // Removed AuthGuard wrapper
     <>
       <Head>
         <title>Admin Dashboard | Singapore MUN</title>
