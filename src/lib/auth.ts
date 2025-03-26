@@ -2,13 +2,6 @@ import { useState, useEffect } from 'react';
 
 const isBrowser = typeof window !== 'undefined';
 
-const ADMIN_EMAIL = process.env.ADMIN;
-
-export const checkPassword = (password: string) => {
-  return password === ADMIN_EMAIL;
-}
-
-
 export const logout = () => {
   localStorage.removeItem('adminUser');
 };
