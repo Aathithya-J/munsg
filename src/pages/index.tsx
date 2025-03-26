@@ -28,6 +28,7 @@ interface Conference {
   status: string;
   website?: string;
   description?: string;
+  imageUrl?: string;
 }
 
 export default function Home() {
@@ -72,7 +73,8 @@ export default function Home() {
       
       const conferencesData = conferencesSnapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
+        dates: doc.data().date || 'TBA', // Default to "TBA" if dates field is empty
       })) as Conference[];
       
       setConferences(conferencesData);
@@ -373,7 +375,7 @@ export default function Home() {
             <div className="conference-card" key={conference.id}>
               <div className="conference-image">
                 <Image 
-                  src="https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&q=80&w=2940" 
+                  src={conference.imageUrl || "https://via.placeholder.com/300"} // Use inputted imageUrl or fallback
                   alt={conference.name}
                   fill
                   style={{ objectFit: "cover" }}
@@ -398,7 +400,7 @@ export default function Home() {
                 <div className="conference-details">
                   <div className="detail">
                     <Calendar size={16} />
-                    <span>{conference.dates}</span>
+                    <span>{conference.dates}</span> {/* Pull dates from Firebase, default to "TBA" if empty */}
                   </div>
                   <div className="detail">
                     <MapPin size={16} />
