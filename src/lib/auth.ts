@@ -1,15 +1,13 @@
-// Simple authentication helper without Firebase Auth
 import { useState, useEffect } from 'react';
 
-// Check if running on the client side
 const isBrowser = typeof window !== 'undefined';
 
-// Admin credentials from environment variables
-const ADMIN_EMAIL = process.env.NNEXT_PUBLIC_ADMIN;
+const ADMIN_EMAIL = process.env.ADMIN;
 
-// Session storage key
-const AUTH_TOKEN_KEY = 'adminAuthToken';
-const AUTH_USER_KEY = 'adminUser';
+export const checkPassword = (password: string) => {
+  return password === ADMIN_EMAIL;
+}
+
 
 export const logout = () => {
   localStorage.removeItem('adminUser');

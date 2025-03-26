@@ -4,6 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { Lock, Moon, Sun } from 'lucide-react';
 import { initializeTheme, toggleDarkMode } from '../../lib/theme';
+import { checkPassword } from '../../lib/auth';
 
 const ADMIN = process.env.NEXT_PUBLIC_ADMIN;
 
@@ -31,8 +32,8 @@ export default function AdminLogin() {
     setError('');
 
     // Compare input value with environment variable
-    if (formData.email !== ADMIN) {
-      setError('Invalid admin value. Please try again.');
+    if (!checkPassword(formData.email)) {
+      setError('Invalid admin value');
       setLoading(false);
       return;
     }
@@ -106,8 +107,8 @@ export default function AdminLogin() {
             <Link href="/" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
               Back to Homepage
             </Link>
-            
-            <button 
+
+            <button
               onClick={handleToggleDarkMode}
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-sm flex items-center gap-1.5"
             >
